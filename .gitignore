@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Local SQLite data (demo data is reseeded automatically on startup)
+backend/timesheets.db
+
+# Node
+frontend/node_modules/
+
+# Frontend build output IS committed on purpose — Render's Python runtime
+# doesn't have Node, so the built dist/ is served as static files directly.
+# (If you change the frontend, rebuild with `npm run build` before pushing.)
+
+# Editor/OS
+.DS_Store
+out/
