@@ -1,10 +1,11 @@
 # Trees Engineering — Treelancer Timesheets backend
+# Deliberately minimal — every extra package here is another download+install
+# step in the Render build. Add back psycopg[binary] when real Postgres
+# persistence is wired up (SQLite needs no driver).
 fastapi>=0.110
-uvicorn[standard]>=0.29
+uvicorn>=0.29
 sqlalchemy>=2.0
 pydantic[email]>=2.5
 pydantic-settings>=2.1
 PyJWT>=2.8
 reportlab>=4.0
-# Postgres driver for prod (local dev uses SQLite, no driver needed):
-psycopg[binary]>=3.1
