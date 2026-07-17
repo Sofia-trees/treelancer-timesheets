@@ -2,7 +2,8 @@ import { useAuth } from "../auth.jsx";
 import { statusLabel } from "../util.js";
 
 export function Layout({ children }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const roleName = { freelancer: "Treelancer", line_manager: "Line Manager", admin: "Admin" }[user?.role];
   return (
     <>
       <header className="appbar">
@@ -13,7 +14,8 @@ export function Layout({ children }) {
         </div>
         {user && (
           <div className="who">
-            <span>{user.full_name}</span>
+            <span>{user.full_name} · {roleName}</span>
+            <button className="btn-sm" onClick={logout}>Sign out</button>
           </div>
         )}
       </header>
