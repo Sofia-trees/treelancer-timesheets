@@ -11,7 +11,6 @@ export default defineConfig({
       "/api": {
         target: "http://127.0.0.1:8077",
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api/, ""),
       },
     },
   },

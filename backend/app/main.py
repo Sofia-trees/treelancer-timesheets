@@ -1,8 +1,8 @@
 """Trees Engineering — Treelancer Timesheets API.
 
-In production this single service also serves the built React app (see the
-SPA catch-all at the bottom), so one Render deploy gives one shareable URL —
-no separate frontend host or CORS to configure.
+Self-service, no accounts: this single service exposes one API route that turns
+a submitted form into the parser-proof PDF, and also serves the built React app
+(frontend/dist). One Render deploy, one shareable URL, no login, no database.
 """
 
 from __future__ import annotations
@@ -15,12 +15,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
-from app.db import init_db
-from app.routers import admin, assignments, auth, manager, timesheets
+from app.routers import generate
 
 settings = get_settings()
 
-app = FastAPI(title="Treelancer Timesheets API", version="1.0.0")
+app = FastAPI(title="Treelancer Timesheets API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,26 +30,14 @@ app.add_middleware(
 )
 
 
-@app.on_event("startup")
-def _startup() -> None:
-    init_db()
-    if settings.seed_on_startup:
-        from app.seed import run as seed_run  # local import: only needed for demo deploys
-        seed_run()
-
-
 @app.get("/health", tags=["meta"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-# All API routes live under /api so the SPA catch-all below can safely own
+# The only API route. Lives under /api so the SPA catch-all below can own
 # everything else (matches the frontend's default VITE_API_BASE of "/api").
-app.include_router(auth.router, prefix="/api")
-app.include_router(timesheets.router, prefix="/api")
-app.include_router(manager.router, prefix="/api")
-app.include_router(admin.router, prefix="/api")
-app.include_router(assignments.router, prefix="/api")
+app.include_router(generate.router, prefix="/api")
 
 
 # ---- Serve the built frontend (frontend/dist), if present ----------------- #
@@ -61,9 +48,8 @@ if _FRONTEND_DIST.is_dir():
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def spa(full_path: str) -> FileResponse:
-        # Registered last, so it only catches requests that didn't match an
-        # /api/* route above. Any unknown path falls back to index.html so
-        # React Router can render the right client-side page.
+        # Registered last, so it only catches requests that didn't match the
+        # /api/* route above. Any unknown path falls back to index.html.
         candidate = _FRONTEND_DIST / full_path
         if candidate.is_file():
             return FileResponse(candidate)

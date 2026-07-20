@@ -47,13 +47,22 @@ export const api = {
   // Download a file (PDF/ZIP) as a blob and trigger a browser save.
   async download(p, fallbackName) {
     const res = await request("GET", p, undefined, { raw: true });
-    const blob = await res.blob();
-    const cd = res.headers.get("Content-Disposition") || "";
-    const m = cd.match(/filename="?([^"]+)"?/);
-    const name = m ? m[1] : fallbackName;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = name; a.click();
-    URL.revokeObjectURL(url);
+    await saveBlob(res, fallbackName);
+  },
+  // POST a JSON body and save the file that comes back (e.g. the generated PDF).
+  async postDownload(p, body, fallbackName) {
+    const res = await request("POST", p, body ?? {}, { raw: true });
+    await saveBlob(res, fallbackName);
   },
 };
+
+async function saveBlob(res, fallbackName) {
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") || "";
+  const m = cd.match(/filename="?([^"]+)"?/);
+  const name = m ? m[1] : fallbackName;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
